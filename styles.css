@@ -1,4 +1,21 @@
 /* Sets all the text color to red! */
-body {
-    color: red;
+.setting-item-control.fss-setting-control {
+  width: 100% !important;
+  justify-content: space-between;
+  align-items: flex-start;
+  column-gap: 20px;
+}
+
+.setting-item-control > .fss-field {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.setting-item-control > .fss-values {
+  display: grid;
+  grid-template-columns: repeat(5, auto);
+  justify-content: end;
+  align-items: center;
+  row-gap: 10px;
 }
