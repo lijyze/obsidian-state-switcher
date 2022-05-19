@@ -13,20 +13,17 @@ export default class StateSwitcherPlugin extends Plugin {
 
 		// add command to launch action
 		this.addCommand({
-			id: 'file-state-switcher: launch',
+			id: 'launch',
 			name: 'Switch state',
-			hotkeys: [{
-				modifiers: ['Mod', 'Shift'],
-				key: 's'
-			}],
 			editorCallback: async (editor: Editor, view: MarkdownView) => {
-				const nonEmptyField = this.settings.filter((map) => map.key);
+				const nonEmptyField = this.settings.stateMaps.filter((map) => map.key);
 				const ids = nonEmptyField.map((field) => '' + field.id);
 				const keys = nonEmptyField.map((field) => field.key);
+
 				const selectedId = await Suggester.Suggest(this.app, keys, ids);
 				const selectedKey = nonEmptyField.find((field) => field.id === selectedId).key;
 
-				const values = this.settings.find((field) => field.id === selectedId).values.filter((values) => values);
+				const values = nonEmptyField.find((field) => field.id === selectedId).values.filter((values) => values);
 				const selectedValue = await Suggester.Suggest(this.app, values, values);
 
 				replace(selectedKey, selectedValue, editor)
@@ -42,8 +39,7 @@ export default class StateSwitcherPlugin extends Plugin {
 	}
 
 	async loadSettings() {
-		const customData = await this.loadData();
-		this.settings = customData ?? DEFAULT_SETTINGS;
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 	}
 
 	async saveSettings() {

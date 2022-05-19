@@ -9,11 +9,15 @@ interface FieldType {
 	values: string[];
 }
 
-export type StateSwitcherSettings = FieldType[];
+export interface StateSwitcherSettings {
+	stateMaps: FieldType[];
+}
 
-export const DEFAULT_SETTINGS: StateSwitcherSettings = [
-	{ id: '0', key: "state", values: ["waiting", "ongoing", "completed"] },
-];
+export const DEFAULT_SETTINGS: StateSwitcherSettings = {
+	stateMaps: [
+		{ id: '0', key: "state", values: ["waiting", "ongoing", "completed"] }
+	],
+};
 
 export class FileStateSwitcherSettingTab extends PluginSettingTab {
 
@@ -36,7 +40,7 @@ export class FileStateSwitcherSettingTab extends PluginSettingTab {
 					.setTooltip("Add additional map")
 					.setButtonText("+")
 					.onClick(() => {
-						this.plugin.settings.push({
+						this.plugin.settings.stateMaps.push({
 							id: '' + Date.now(),
 							key: "",
 							values: [""],
@@ -46,7 +50,7 @@ export class FileStateSwitcherSettingTab extends PluginSettingTab {
 					});
 			});
 
-		this.plugin.settings.forEach((field, fieldIndex, fields) => {
+		this.plugin.settings.stateMaps.forEach((field, fieldIndex, fields) => {
 			const s = new Setting(this.containerEl);
 			s.controlEl.addClass("fss-setting-control");
 			s.infoEl.remove();
