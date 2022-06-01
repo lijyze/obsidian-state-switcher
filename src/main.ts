@@ -1,4 +1,4 @@
-import { Editor, MarkdownView, Plugin } from 'obsidian';
+import { Editor, MarkdownView, Notice, Plugin } from 'obsidian';
 
 import { StateSwitcherSettings, FileStateSwitcherSettingTab, DEFAULT_SETTINGS } from './setting';
 import Suggester from './suggester';
@@ -17,14 +17,34 @@ export default class StateSwitcherPlugin extends Plugin {
 			name: 'Switch state',
 			editorCallback: async (editor: Editor, view: MarkdownView) => {
 				const nonEmptyField = this.settings.stateMaps.filter((map) => map.key);
+
+				if (!nonEmptyField.length) {
+					new Notice('No map founded, please check your config');
+					return ;
+				}
+
 				const ids = nonEmptyField.map((field) => '' + field.id);
 				const keys = nonEmptyField.map((field) => field.key);
 
-				const selectedId = await Suggester.Suggest(this.app, keys, ids);
+				let selectedId: string;
+				try {
+					selectedId = await Suggester.Suggest(this.app, keys, ids);
+				} catch (error) {
+					console.log(error)
+				}
+
+				if (!selectedId) return ;
+				
 				const selectedKey = nonEmptyField.find((field) => field.id === selectedId).key;
 
 				const values = nonEmptyField.find((field) => field.id === selectedId).values.filter((values) => values);
-				const selectedValue = await Suggester.Suggest(this.app, values, values);
+
+				let selectedValue: string;
+				try {
+					selectedValue = await Suggester.Suggest(this.app, values, values);
+				} catch (error) {
+					console.log(error)
+				}
 
 				replace(selectedKey, selectedValue, editor)
 			}
