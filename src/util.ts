@@ -18,13 +18,13 @@ export function itemDelete<T>(arr: T[], itemIndex: number): void {
 }
 
 function generateAncherRegex(ancher: string): RegExp {
-  return new RegExp(`(?<=\\n)\\s*(?:-\\s+)?${ancher}(?:\\s*:.+?\\n)`);
+  return new RegExp(` *(?:-\\s+)?${ancher}(?:\\s*:.+?\\n)`);
 }
 
 // Get offset of value
 function getValueOffset(str: string): number {
-  const matchRes = str.match(/(?<=\w+\s*:\s*)\S/);
-  if (matchRes) return matchRes.index;
+  const matchRes = str.match(/\w+/g);
+  if (matchRes.length >= 2) return str.indexOf(matchRes[1]);
 
   return str.match(/:/).index + 2;
 }
