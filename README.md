@@ -16,6 +16,11 @@ This plugin allow you switch value of specific field within custom value set, so
 
 This plugin only switch value of field which is placed in yaml front matter, if no front matter was founded, it will create one then insert the key-value pair just selected into it.
 
+## Working on
+
+1. Make it support more data structure, such as key-array, key-object, etc.
+2. Make it able to handle multiple fields in one time.
+
 ## Manually installing the plugin
 
 - Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/obsidian-state-switcher/`.
