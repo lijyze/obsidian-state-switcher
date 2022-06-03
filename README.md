@@ -9,7 +9,7 @@ This plugin allow you switch value of specific field within custom value set, so
 ## Usage
 
 - First config your custom setting in setting tab.
-- In edit mode, press hotkey or select `State Switcher: Switch state` in command palette. You can give this command a hotkey in hotkey setting tab.
+- In edit mode, select `State Switcher: Switch state` in command palette. You can give this command a hotkey in hotkey setting tab.
 - Select field name and field value in order.
 
 ## Notice
