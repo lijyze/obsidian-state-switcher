@@ -1,9 +1,18 @@
 /* Sets all the text color to red! */
 .setting-item-control.fss-setting-control {
   width: 100% !important;
+  display: grid;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: start;
   column-gap: 20px;
+}
+
+.setting-item-control > .fss-meta { 
+  display: flex;
+  justify-content: space-between;
+  grid-area: 1 / 1 / span 1 / span 2;
+  text-align: left;
+  padding-bottom: 12px;;
 }
 
 .setting-item-control > .fss-field {
@@ -13,9 +22,14 @@
 }
 
 .setting-item-control > .fss-values {
-  display: grid;
-  grid-template-columns: repeat(5, auto);
-  justify-content: end;
-  align-items: center;
+  display: flex;
+  flex-flow: column;
+  justify-content: flex-start;
   row-gap: 10px;
+}
+
+.setting-item-control > .fss-values > .fss-values-value {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }

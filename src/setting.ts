@@ -4,8 +4,8 @@ import FileStateSwitcherPlugin from "./main";
 import { itemMove, itemAdd, itemDelete } from "./util";
 
 interface FieldType {
-	id: string;
 	key: string;
+	structure: Exclude<keyof typeof structureSet, keyof []>;
 	values: string[];
 }
 
@@ -13,9 +13,11 @@ export interface StateSwitcherSettings {
 	stateMaps: FieldType[];
 }
 
+const structureSet = ['key-value', 'key-array'] as const;
+
 export const DEFAULT_SETTINGS: StateSwitcherSettings = {
 	stateMaps: [
-		{ id: '0', key: "state", values: ["waiting", "ongoing", "completed"] }
+		{ key: "state", structure: '0', values: ["waiting", "ongoing", "completed"] }
 	],
 };
 
@@ -41,8 +43,8 @@ export class FileStateSwitcherSettingTab extends PluginSettingTab {
 					.setButtonText("+")
 					.onClick(() => {
 						this.plugin.settings.stateMaps.push({
-							id: '' + Date.now(),
 							key: "",
+							structure: '0',
 							values: [""],
 						});
 						this.plugin.saveSettings();
@@ -53,124 +55,153 @@ export class FileStateSwitcherSettingTab extends PluginSettingTab {
 		this.plugin.settings.stateMaps.forEach((field, fieldIndex, fields) => {
 			const s = new Setting(this.containerEl);
 			s.controlEl.addClass("fss-setting-control");
-			s.infoEl.remove();
+
+			const metaContainer = s.controlEl.createDiv();
+			metaContainer.addClass("fss-meta");
+			renderMeta.call(this, s, metaContainer, field)
 
 			const fieldContainer = s.controlEl.createDiv();
 			fieldContainer.addClass("fss-field");
+			renderField.call(this, s, fieldContainer, fields, fieldIndex);
 
 			const valueContainer = s.controlEl.createDiv();
 			valueContainer.addClass("fss-values");
-
-			/**
-			 * Delete field key
-			 */
-			s.addExtraButton((button) => {
-				button
-					.setIcon("cross")
-					.setTooltip("Delete key")
-					.onClick(() => {
-						itemDelete(fields, fieldIndex);
-						this.plugin.saveSettings();
-						this.display();
-					});
-			});
-			fieldContainer.appendChild(s.controlEl.lastChild);
-
-			/**
-			 * Define field key
-			 */
-			s.addText((text) => {
-				text.setPlaceholder("Field")
-					.setValue(field.key)
-					.onChange((newField) => {
-						field.key = newField;
-						this.plugin.saveSettings();
-					});
-			});
-			fieldContainer.appendChild(s.controlEl.lastChild);
-
-			field.values.forEach((value, valueIndex, values) => {
-				/**
-				 * Define field value
-				 */
-				s.addText((text) => {
-					text.setPlaceholder(`Value${valueIndex + 1}`)
-						.setValue(value)
-						.onChange((newValue) => {
-							values[valueIndex] = newValue;
-							this.plugin.saveSettings();
-						});
-				});
-				valueContainer.appendChild(s.controlEl.lastChild);
-
-				/**
-				 * Move field value up
-				 */
-				s.addExtraButton((cb) => {
-					cb.setIcon("up-chevron-glyph")
-						.setTooltip("Move up")
-						.onClick(() => {
-							if (valueIndex !== 0) {
-								itemMove(values, valueIndex - 1, valueIndex)								
-								
-								this.plugin.saveSettings();
-								this.display();
-							}
-						});
-				});
-				valueContainer.appendChild(s.controlEl.lastChild);
-
-				/**
-				 * Move field value down
-				 */
-				s.addExtraButton((cb) => {
-					cb.setIcon("down-chevron-glyph")
-						.setTooltip("Move down")
-						.onClick(() => {
-							if (valueIndex !== values.length - 1) {
-								itemMove(values, valueIndex, valueIndex + 1)								
-								
-								this.plugin.saveSettings();
-								this.display();
-							}
-						});
-				});
-				valueContainer.appendChild(s.controlEl.lastChild);
-
-				/**
-				 * Add new field value
-				 */
-				s.addExtraButton((cb) => {
-					cb.setIcon('plus')
-						.setTooltip("Add")
-						.onClick(() => {
-							itemAdd(values, valueIndex + 1, '');
-
-							this.plugin.saveSettings();
-							this.display();
-						});
-				});
-				valueContainer.appendChild(s.controlEl.lastChild);
-
-				/**
-				 * Delete field value
-				 */
-				s.addExtraButton((cb) => {
-					cb.setIcon("cross")
-						.setTooltip("Delete")
-						.onClick(() => {
-							if (values.length === 1) {
-								itemDelete(fields, fieldIndex)
-							} else {
-								itemDelete(values, valueIndex)
-							}
-
-							this.plugin.saveSettings();
-							this.display();
-						});
-				});
-				valueContainer.appendChild(s.controlEl.lastChild);
-			});
+			renderValue.call(this, s, valueContainer, field.values, fields, fieldIndex);
 		});
 	}
+}
+
+function renderMeta(setting: Setting, container: HTMLDivElement, field: FieldType) {
+	setting.setName('Structure').setDesc('Value structure of this key')
+	container.appendChild(setting.infoEl);
+
+	setting.addDropdown((cb) => {
+		cb.addOptions(Object.fromEntries(structureSet.entries()))
+			.setValue(field.structure ?? '0')
+			.onChange((value) => {
+				field.structure =  value as FieldType["structure"];
+				this.plugin.saveSettings();
+				this.display();
+			})
+	})
+	container.appendChild(setting.controlEl.lastChild);
+}
+
+function renderField(setting: Setting, container: HTMLDivElement, keys: FieldType[], keyIdx: number) {
+	/**
+	 * Delete field key
+	 */
+		setting.addExtraButton((button) => {
+		button
+			.setIcon("cross")
+			.setTooltip("Delete key")
+			.onClick(() => {
+				itemDelete(keys, keyIdx);
+				this.plugin.saveSettings();
+				this.display();
+			});
+	});
+	container.appendChild(setting.controlEl.lastChild);
+
+	/**
+	 * Define field key
+	 */
+	setting.addText((text) => {
+		text.setPlaceholder("Field")
+			.setValue(keys[keyIdx].key)
+			.onChange((newField) => {
+				keys[keyIdx].key = newField;
+				this.plugin.saveSettings();
+			});
+	});
+	container.appendChild(setting.controlEl.lastChild);
+}
+
+function renderValue(setting: Setting, container: HTMLDivElement, values : string[], keys: FieldType[], keyIdx: number) {
+	values.forEach((value, valueIndex, values) => {
+		const valueContainer = setting.controlEl.createDiv();
+		valueContainer.addClass('fss-values-value');
+		container.appendChild(valueContainer);
+
+		/**
+		 * Define field value
+		 */
+		setting.addText((text) => {
+			text.setPlaceholder(`Value${valueIndex + 1}`)
+				.setValue(value)
+				.onChange((newValue) => {
+					values[valueIndex] = newValue;
+					this.plugin.saveSettings();
+				});
+		});
+		valueContainer.appendChild(setting.controlEl.lastChild);
+
+		/**
+		 * Move field value up
+		 */
+		setting.addExtraButton((cb) => {
+			cb.setIcon("up-chevron-glyph")
+				.setTooltip("Move up")
+				.onClick(() => {
+					if (valueIndex !== 0) {
+						itemMove(values, valueIndex - 1, valueIndex)								
+						
+						this.plugin.saveSettings();
+						this.display();
+					}
+				});
+		});
+		valueContainer.appendChild(setting.controlEl.lastChild);
+
+		/**
+		 * Move field value down
+		 */
+		setting.addExtraButton((cb) => {
+			cb.setIcon("down-chevron-glyph")
+				.setTooltip("Move down")
+				.onClick(() => {
+					if (valueIndex !== values.length - 1) {
+						itemMove(values, valueIndex, valueIndex + 1)								
+						
+						this.plugin.saveSettings();
+						this.display();
+					}
+				});
+		});
+		valueContainer.appendChild(setting.controlEl.lastChild);
+
+		/**
+		 * Add new field value
+		 */
+		setting.addExtraButton((cb) => {
+			cb.setIcon('plus')
+				.setTooltip("Add")
+				.onClick(() => {
+					itemAdd(values, valueIndex + 1, '');
+
+					this.plugin.saveSettings();
+					this.display();
+				});
+		});
+		valueContainer.appendChild(setting.controlEl.lastChild);
+
+		/**
+		 * Delete field value
+		 */
+		setting.addExtraButton((cb) => {
+			cb.setIcon("cross")
+				.setTooltip("Delete")
+				.onClick(() => {
+					if (values.length === 1) {
+						itemDelete(keys, keyIdx)
+					} else {
+						itemDelete(values, valueIndex)
+					}
+
+					this.plugin.saveSettings();
+					this.display();
+				});
+		});
+		valueContainer.appendChild(setting.controlEl.lastChild);
+	});
 }
