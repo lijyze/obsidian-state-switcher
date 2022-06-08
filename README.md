@@ -33,7 +33,7 @@ This plugin only switch value of field which is placed in yaml front matter, if 
 You may need to reset hotkey to call this plugin if you have set ever.
 
 1. Key-array structure supported
-2. Add return selection to sub menu
+2. Add return option to sub menu
 
 ## Donating
 
