@@ -3,9 +3,9 @@ import { App, ButtonComponent, PluginSettingTab, Setting } from "obsidian";
 import FileStateSwitcherPlugin from "./main";
 import { itemMove, itemAdd, itemDelete } from "./util";
 
-interface FieldType {
+export interface FieldType {
 	key: string;
-	structure: Exclude<keyof typeof structureSet, keyof []>;
+	structure: keyof typeof structureMap;
 	values: string[];
 }
 
@@ -13,11 +13,14 @@ export interface StateSwitcherSettings {
 	stateMaps: FieldType[];
 }
 
-const structureSet = ['key-value', 'key-array'] as const;
+const structureMap = {
+	keyValue: 'key-value', 
+	keyArray: 'key-array',
+ } as const;
 
 export const DEFAULT_SETTINGS: StateSwitcherSettings = {
 	stateMaps: [
-		{ key: "state", structure: '0', values: ["waiting", "ongoing", "completed"] }
+		{ key: "state", structure: 'keyValue', values: ["waiting", "ongoing", "completed"] }
 	],
 };
 
@@ -34,41 +37,49 @@ export class FileStateSwitcherSettingTab extends PluginSettingTab {
 
 		containerEl.createEl("h2", { text: "State Switcher Settings" });
 
-		new Setting(containerEl)
-			.setName("Add map")
-			.setDesc("Add new key-values map")
-			.addButton((button: ButtonComponent) => {
-				button
-					.setTooltip("Add additional map")
-					.setButtonText("+")
-					.onClick(() => {
-						this.plugin.settings.stateMaps.push({
-							key: "",
-							structure: '0',
-							values: [""],
-						});
-						this.plugin.saveSettings();
-						this.display();
-					});
-			});
+		renderNewSettingItemButton.call(this, containerEl);
 
 		this.plugin.settings.stateMaps.forEach((field, fieldIndex, fields) => {
 			const s = new Setting(this.containerEl);
 			s.controlEl.addClass("fss-setting-control");
 
-			const metaContainer = s.controlEl.createDiv();
-			metaContainer.addClass("fss-meta");
-			renderMeta.call(this, s, metaContainer, field)
-
-			const fieldContainer = s.controlEl.createDiv();
-			fieldContainer.addClass("fss-field");
-			renderField.call(this, s, fieldContainer, fields, fieldIndex);
-
-			const valueContainer = s.controlEl.createDiv();
-			valueContainer.addClass("fss-values");
-			renderValue.call(this, s, valueContainer, field.values, fields, fieldIndex);
+			renderSettingItem.apply(this, [s, field, fieldIndex, fields]);
 		});
 	}
+}
+
+function renderNewSettingItemButton(containerEl: HTMLElement) {
+	new Setting(containerEl)
+	.setName("Add map")
+	.setDesc("Add new key-values map")
+	.addButton((button: ButtonComponent) => {
+		button
+		.setTooltip("Add additional map")
+		.setButtonText("+")
+		.onClick(() => {
+			this.plugin.settings.stateMaps.push({
+				key: "",
+				structure: '0',
+				values: [""],
+			});
+			this.plugin.saveSettings();
+			this.display();
+		});
+	});
+}
+
+function renderSettingItem(s: Setting, field: FieldType, fieldIndex: number, fields: FieldType[]) {
+	const metaContainer = s.controlEl.createDiv();
+	metaContainer.addClass("fss-meta");
+	renderMeta.apply(this, [s, metaContainer, field])
+	
+	const fieldContainer = s.controlEl.createDiv();
+	fieldContainer.addClass("fss-field");
+	renderField.apply(this, [s, fieldContainer, fields, fieldIndex]);
+	
+	const valueContainer = s.controlEl.createDiv();
+	valueContainer.addClass("fss-values");
+	renderValue.apply(this, [s, valueContainer, field.values, fields, fieldIndex]);
 }
 
 function renderMeta(setting: Setting, container: HTMLDivElement, field: FieldType) {
@@ -76,8 +87,8 @@ function renderMeta(setting: Setting, container: HTMLDivElement, field: FieldTyp
 	container.appendChild(setting.infoEl);
 
 	setting.addDropdown((cb) => {
-		cb.addOptions(Object.fromEntries(structureSet.entries()))
-			.setValue(field.structure ?? '0')
+		cb.addOptions(structureMap)
+			.setValue(field.structure ?? 'keyValue')
 			.onChange((value) => {
 				field.structure =  value as FieldType["structure"];
 				this.plugin.saveSettings();
