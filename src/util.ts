@@ -2,6 +2,13 @@ import { Editor, EditorPosition, parseYaml, stringifyYaml } from "obsidian";
 
 export const yamlRegex = /^---\n(?:((?:.|\n)*?)\n)?---(?=\n|$)/;
 
+// Get objectify yaml of current file
+export function getObjectYaml(editor: Editor) {
+  const stringYaml = getYaml(editor);
+
+  return stringYaml? parseYaml(stringYaml.slice(4, -4)): {}
+}
+
 // Exchange item position in array
 export function itemMove<T>(arr: T[], itemIdx1: number, itemIdx2: number): void {
   [arr[itemIdx1], arr[itemIdx2]] = [arr[itemIdx2], arr[itemIdx1]];
@@ -26,7 +33,7 @@ function getYaml(editor: Editor): string {
 
 function generateActionKeyword(key: string, value: string, editor: Editor, action: 'replace' | 'insert' | 'remove') {
   const yaml = getYaml(editor);
-  const objectYaml = yaml && parseYaml(yaml.slice(4, -4)) || {};
+  const objectYaml = getObjectYaml(editor);
 
   const startPosition: EditorPosition = {line: 0, ch: 0};
   const endPosition: EditorPosition = editor.offsetToPos(yaml.length);
@@ -34,9 +41,7 @@ function generateActionKeyword(key: string, value: string, editor: Editor, actio
   if (!yaml) {
     if (action === 'replace') objectYaml[key] = value;
     if (action === 'insert') objectYaml[key] = [value];
-  }
-
-  if (yaml && objectYaml) {
+  } else {
     if (action === 'replace') objectYaml[key] = value;
     if (action === 'insert') objectYaml[key] = objectYaml[key]? [...objectYaml[key], value]: [value];
     if (action === 'remove' && objectYaml[key]) {

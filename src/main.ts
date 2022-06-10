@@ -2,7 +2,7 @@ import { Editor, MarkdownView, Notice, Plugin } from 'obsidian';
 
 import { StateSwitcherSettings, FileStateSwitcherSettingTab, DEFAULT_SETTINGS } from './setting';
 import Suggester from './suggester';
-import { replace, insert, remove } from './util';
+import { replace, insert, remove, getObjectYaml } from './util';
 
 export default class StateSwitcherPlugin extends Plugin {
 	settings: StateSwitcherSettings ;
@@ -25,7 +25,7 @@ export default class StateSwitcherPlugin extends Plugin {
 				let selectionResult;
 
 				try {
-					selectionResult = await this.getUserSelection(source);
+					selectionResult = await this.getUserSelection(editor, source);
 				} catch (error) {
 					console.log(error);
 				}
@@ -48,7 +48,7 @@ export default class StateSwitcherPlugin extends Plugin {
 				let selectionResult;
 
 				try {
-					selectionResult = await this.getUserSelection(source, 'insert');
+					selectionResult = await this.getUserSelection(editor, source, 'insert');
 				} catch (error) {
 					console.log(error);
 				}
@@ -71,7 +71,7 @@ export default class StateSwitcherPlugin extends Plugin {
 				let selectionResult;
 
 				try {
-					selectionResult = await this.getUserSelection(source, 'remove');
+					selectionResult = await this.getUserSelection(editor, source, 'remove');
 				} catch (error) {
 					console.log(error);
 				}
@@ -99,10 +99,9 @@ export default class StateSwitcherPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	async getUserSelection(source?: StateSwitcherSettings['stateMaps'], action?: 'insert' | 'remove'): Promise<{selectedKey: string, selectedValue: string}> {
+	async getUserSelection(editor: Editor, source?: StateSwitcherSettings['stateMaps'], action?: 'insert' | 'remove'): Promise<{selectedKey: string, selectedValue: string}> {
 		source = source ?? this.settings.stateMaps;
-		const path = this.app.workspace.getActiveViewOfType(MarkdownView).file.path;
-		const currentFrontmatter = this.app.metadataCache.getCache(path).frontmatter;
+		const currentFrontmatter = getObjectYaml(editor)
 		const nonEmptyField = action === 'remove'
 			? source.filter((map) => map.key && currentFrontmatter[map.key])
 			: source.filter((map) => map.key);
@@ -144,7 +143,7 @@ export default class StateSwitcherPlugin extends Plugin {
 		}
 
 		if (!selectedValue) return;
-		if (selectedValue === this.constants.turnBack) return await this.getUserSelection(source, action);
+		if (selectedValue === this.constants.turnBack) return await this.getUserSelection(editor, source, action);
 
 		return {selectedKey, selectedValue}
 	}
