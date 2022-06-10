@@ -38,8 +38,12 @@ function generateActionKeyword(key: string, value: string, editor: Editor, actio
 
   if (yaml && objectYaml) {
     if (action === 'replace') objectYaml[key] = value;
-    if (action === 'insert') objectYaml[key].push(value);
-    if (action === 'remove') objectYaml[key] = objectYaml[key].filter((val: string) => val !== value);
+    if (action === 'insert') objectYaml[key] = objectYaml[key]? [...objectYaml[key], value]: [value];
+    if (action === 'remove' && objectYaml[key]) {
+      const newValue = objectYaml[key].filter((val: string) => val !== value);
+      
+      newValue.length? objectYaml[key] = newValue: delete objectYaml[key];
+    }
   }
 
   const replacement = `---\n${stringifyYaml(objectYaml)}---`;

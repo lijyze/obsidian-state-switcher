@@ -1,7 +1,7 @@
 {
 	"id": "obsidian-state-switcher",
 	"name": "State Switcher",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"minAppVersion": "0.12.0",
 	"description": "Switch value of specific field within custom value set",
 	"author": "Lijyze",

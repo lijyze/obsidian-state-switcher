@@ -101,10 +101,16 @@ export default class StateSwitcherPlugin extends Plugin {
 
 	async getUserSelection(source?: StateSwitcherSettings['stateMaps'], action?: 'insert' | 'remove'): Promise<{selectedKey: string, selectedValue: string}> {
 		source = source ?? this.settings.stateMaps;
-		const nonEmptyField = source.filter((map) => map.key);
+		const path = this.app.workspace.getActiveViewOfType(MarkdownView).file.path;
+		const currentFrontmatter = this.app.metadataCache.getCache(path).frontmatter;
+		const nonEmptyField = action === 'remove'
+			? source.filter((map) => map.key && currentFrontmatter[map.key])
+			: source.filter((map) => map.key);
 
 		if (!nonEmptyField.length) {
-			new Notice('No map founded, please check your config');
+			action === 'remove'
+				? new Notice('Nothing can be removed')
+				: new Notice('No map founded, please check your config');
 			return ;
 		}
 
@@ -119,12 +125,14 @@ export default class StateSwitcherPlugin extends Plugin {
 
 		if (!selectedKey) return;
 
-		const fileName = this.app.workspace.getActiveViewOfType(MarkdownView).file.name;
-		const currentValues = this.app.metadataCache.getCache(fileName).frontmatter[selectedKey];
 		let values = nonEmptyField.find((field) => field.key === selectedKey).values.filter((values) => values);
-		if (currentValues && action) {
-			if (action === 'insert') values = values.filter((value) => !currentValues.includes(value))
-			if (action === 'remove') values = values.filter((value) => currentValues.includes(value))
+		if (action) {
+			const currentValues = currentFrontmatter[selectedKey];
+
+			if (currentValues) {
+				if (action === 'insert') values = values.filter((value) => !currentValues.includes(value))
+				if (action === 'remove') values = values.filter((value) => currentValues.includes(value))
+			}
 		}
 		values.push(this.constants.turnBack);
 

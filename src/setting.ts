@@ -59,7 +59,7 @@ function renderNewSettingItemButton(containerEl: HTMLElement) {
 		.onClick(() => {
 			this.plugin.settings.stateMaps.push({
 				key: "",
-				structure: '0',
+				structure: 'keyValue',
 				values: [""],
 			});
 			this.plugin.saveSettings();
