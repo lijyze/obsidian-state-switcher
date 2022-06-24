@@ -2,6 +2,20 @@ import { Editor, EditorPosition, parseYaml, stringifyYaml } from "obsidian";
 
 export const yamlRegex = /^---\n(?:((?:.|\n)*?)\n)?---(?=\n|$)/;
 
+type CommonUpdateParam = {
+  editor: Editor;
+  key: string;
+  value: string;
+  action: 'replace' | 'insert' | 'remove';
+}
+
+type BulkUpdateParam = {
+  editor: Editor;
+  updateDatas: Record<string, unknown>;
+  removeDatas: string[];
+  action: 'bulk'
+}
+
 // Get objectify yaml of current file
 export function getObjectYaml(editor: Editor) {
   const stringYaml = getYaml(editor);
@@ -31,7 +45,8 @@ function getYaml(editor: Editor): string {
   return matchResult?.[0] ?? '';
 } 
 
-function generateActionKeyword(key: string, value: string, editor: Editor, action: 'replace' | 'insert' | 'remove') {
+function generateActionKeyword(data: CommonUpdateParam | BulkUpdateParam) {
+  const {editor, action} = data;
   const yaml = getYaml(editor);
   const objectYaml = getObjectYaml(editor);
 
@@ -39,15 +54,21 @@ function generateActionKeyword(key: string, value: string, editor: Editor, actio
   const endPosition: EditorPosition = editor.offsetToPos(yaml.length);
 
   if (!yaml) {
-    if (action === 'replace') objectYaml[key] = value;
-    if (action === 'insert') objectYaml[key] = [value];
+    if (action === 'replace') objectYaml[data.key] = data.value;
+    if (action === 'insert') objectYaml[data.key] = [data.value];
+    if (action === 'bulk') {
+      Object.entries(data.updateDatas).forEach(([key, value]) => objectYaml[key] = value);
+    }
   } else {
-    if (action === 'replace') objectYaml[key] = value;
-    if (action === 'insert') objectYaml[key] = objectYaml[key]? [...objectYaml[key], value]: [value];
-    if (action === 'remove' && objectYaml[key]) {
-      const newValue = objectYaml[key].filter((val: string) => val !== value);
-      
-      newValue.length? objectYaml[key] = newValue: delete objectYaml[key];
+    if (action === 'replace') objectYaml[data.key] = data.value;
+    if (action === 'insert') objectYaml[data.key] = objectYaml[data.key]? [...objectYaml[data.key], data.value]: [data.value];
+    if (action === 'remove' && objectYaml[data.key]) {
+      const newValue = objectYaml[data.key].filter((val: string) => val !== data.value);
+      newValue.length? objectYaml[data.key] = newValue: delete objectYaml[data.key];
+    }
+    if (action === 'bulk') {
+      data.removeDatas.forEach((key) => delete objectYaml[key])
+      Object.entries(data.updateDatas).forEach(([key, value]) => objectYaml[key] = value);
     }
   }
 
@@ -57,19 +78,25 @@ function generateActionKeyword(key: string, value: string, editor: Editor, actio
 }
 
 export function replace(key: string, value: string, editor: Editor): void {
-  const {replacement, startPosition, endPosition} = generateActionKeyword(key, value, editor, 'replace');
+  const {replacement, startPosition, endPosition} = generateActionKeyword({key, value, editor, action: 'replace'});
 
   editor.replaceRange(replacement, startPosition, endPosition)
 }
 
 export function insert(key: string, value: string, editor: Editor): void {
-  const {replacement, startPosition, endPosition} = generateActionKeyword(key, value, editor, 'insert');
+  const {replacement, startPosition, endPosition} = generateActionKeyword({key, value, editor, action: 'insert'});
 
   editor.replaceRange(replacement, startPosition, endPosition)
 }
 
 export function remove(key: string, value: string, editor: Editor): void {
-  const {replacement, startPosition, endPosition} = generateActionKeyword(key, value, editor, 'remove');
+  const {replacement, startPosition, endPosition} = generateActionKeyword({key, value, editor, action: 'remove'});
 
   editor.replaceRange(replacement, startPosition, endPosition)
+}
+
+export function bulkUpdate(updateDatas: Record<string, unknown>, removeDatas: string[], editor: Editor): void {
+  const {replacement, startPosition, endPosition} = generateActionKeyword({updateDatas, removeDatas, editor, action: 'bulk'});
+  
+  editor.replaceRange(replacement, startPosition, endPosition);
 }

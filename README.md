@@ -8,11 +8,17 @@ This plugin allow you switch value of specific field within custom value set, so
 
 ## Usage
 
-- First config your custom setting in setting tab.
-- In edit mode
-  - select `State Switcher: Value update` in command palette to update `key-value` field.
-  - select `State Switcher: Array insert` or `State Switcher: Array remove` to insert item to `key-array` field or remove item from `key-array` field.
-- Select field name and field value in order.
+- Update single field
+  - select `State Switcher: key-value update` in command palette to update `key-value` field.
+  - select `State Switcher: key-array insert` or `State Switcher: key-array remove` to insert item to `key-array` field or remove item from `key-array` field.
+  - Select field name and field value in order.
+- Bulk update
+  - select `State Switcher: bulk update` in command palette, you will understand the rest.
+
+
+**These command only available in edit mode!!!**
+
+You can assign hotkeys to these commands for conviences;
 
 ## Notice
 
@@ -28,6 +34,9 @@ This plugin only switch value of field which is placed in yaml front matter, if 
 - Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/obsidian-state-switcher/`.
 
 ## Release
+
+### 1.2.0
+Now you can update multiple fields in one time!
 
 ### 1.1.0
 You may need to reset hotkey to call this plugin if you have set ever.

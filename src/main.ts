@@ -2,7 +2,8 @@ import { Editor, MarkdownView, Notice, Plugin } from 'obsidian';
 
 import { StateSwitcherSettings, FileStateSwitcherSettingTab, DEFAULT_SETTINGS } from './setting';
 import Suggester from './suggester';
-import { replace, insert, remove, getObjectYaml } from './util';
+import BulkUpdateModal from './bulkUpdateModal';
+import { replace, insert, remove, getObjectYaml, bulkUpdate } from './util';
 
 export default class StateSwitcherPlugin extends Plugin {
 	settings: StateSwitcherSettings ;
@@ -80,6 +81,29 @@ export default class StateSwitcherPlugin extends Plugin {
 
 				const {selectedKey, selectedValue} = selectionResult;
 				remove(selectedKey, selectedValue, editor)
+			}
+		})
+
+		// bulk update yaml front matter
+		this.addCommand({
+			id: 'bulkUpdate',
+			name: 'bulk update',
+			editorCallback: async (editor: Editor, view: MarkdownView) => {
+				const currentFrontmatter = getObjectYaml(editor);
+				let updateDatas: Record<string, unknown>;
+				try {
+					updateDatas = await BulkUpdateModal.Generate(this.app, this.settings.stateMaps, currentFrontmatter);
+				} catch(error) {
+					console.log(error);
+				}
+
+				if (!updateDatas) return;
+
+				const removeDatas = this.settings.stateMaps.flatMap((field) => {
+					return updateDatas[field.key]? []: [field.key];
+				})
+
+				bulkUpdate(updateDatas, removeDatas, editor);
 			}
 		})
 

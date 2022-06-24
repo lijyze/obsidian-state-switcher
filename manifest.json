@@ -1,9 +1,9 @@
 {
 	"id": "obsidian-state-switcher",
-	"name": "State Switcher",
-	"version": "1.1.2",
+	"name": "Yaml Manager",
+	"version": "1.2.0",
 	"minAppVersion": "0.12.0",
-	"description": "Switch value of specific field within custom value set",
+	"description": "Keep you away from directly operating of yaml front matter",
 	"author": "Lijyze",
 	"authorUrl": "https://github.com/lijyze",
 	"isDesktopOnly": false
