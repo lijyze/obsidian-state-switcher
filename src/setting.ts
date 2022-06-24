@@ -35,7 +35,7 @@ export class FileStateSwitcherSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl("h2", { text: "State Switcher Settings" });
+		containerEl.createEl("h2", { text: "Yaml Manager Settings" });
 
 		renderNewSettingItemButton.call(this, containerEl);
 
