@@ -9,11 +9,11 @@ This plugin allow you switch value of specific field within custom value set, so
 ## Usage
 
 - Update single field
-  - select `State Switcher: key-value update` in command palette to update `key-value` field.
-  - select `State Switcher: key-array insert` or `State Switcher: key-array remove` to insert item to `key-array` field or remove item from `key-array` field.
+  - select `Yaml Manager: key-value update` in command palette to update `key-value` field.
+  - select `Yaml Manager: key-array insert` or `Yaml Manager: key-array remove` to insert item to `key-array` field or remove item from `key-array` field.
   - Select field name and field value in order.
 - Bulk update
-  - select `State Switcher: bulk update` in command palette, you will understand the rest.
+  - select `Yaml Manager: bulk update` in command palette, you will understand the rest.
 
 
 **These command only available in edit mode!!!**
