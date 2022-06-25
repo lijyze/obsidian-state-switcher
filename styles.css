@@ -41,26 +41,28 @@
   align-items: flex-start;
   padding: 10px 0;
   padding-left: 5px;
+  line-break: auto;
 }
 
 .yaml_manager-bulk_update_modal .field_key_container {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  width: 120px;
+  align-items: flex-start;
+  min-width: 120px;
+  max-width: 40%;
   padding-right: 10px;
   font-weight: 600;
 }
 
 .yaml_manager-bulk_update_modal .field_value_container {
-  display: inline-flex;
+  display: flex;
   flex-flow: row wrap;
   gap: 5px 10px;
 }
 
 .yaml_manager-bulk_update_modal .field_value {
-  display: inline-flex;
-  align-items: center;
+  display: flex;
+  align-items: flex-start;
 }
 
 .yaml_manager-bulk_update_modal .btn_container {
@@ -77,6 +79,8 @@
   width: 13px;
   height: 13px;
   border-radius: 3px;
+  flex: none;
+  margin-top: 3px;
 }
 
 .yaml_manager-bulk_update_modal input[type='radio'] {
@@ -86,7 +90,8 @@
   border-radius: 50%;
   border: 1px solid #ccc;
   margin-left: 0;
-  margin-top: 0;
+  margin-top: 3px;
+  flex: none;
 }
 
 .yaml_manager-bulk_update_modal input[type='radio']:checked {
