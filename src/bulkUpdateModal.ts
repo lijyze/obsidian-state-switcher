@@ -3,7 +3,9 @@ import { FieldType } from './setting';
 
 type Result = Record<string, unknown>;
 
-interface ModalData<T extends FieldType['structure']> extends FieldType {
+interface ModalData<T extends FieldType['structure']> {
+  key: string;
+  values: string[];
   structure: T;
   apply: boolean;
   current: T extends 'keyValue'? string: Set<string>;

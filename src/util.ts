@@ -1,6 +1,6 @@
 import { Editor, EditorPosition, parseYaml, stringifyYaml } from "obsidian";
 
-export const yamlRegex = /^---\n(?:((?:.|\n)*?)\n)?---(?=\n|$)/;
+export const YAML_REGEX = /^---\n(?:((?:.|\n)*?)\n)?---(?=\n|$)/;
 
 type CommonUpdateParam = {
   editor: Editor;
@@ -40,7 +40,7 @@ export function itemDelete<T>(arr: T[], itemIndex: number): void {
 
 // Get yaml section
 function getYaml(editor: Editor): string {
-  const matchResult = editor.getValue().match(yamlRegex);
+  const matchResult = editor.getValue().match(YAML_REGEX);
   
   return matchResult?.[0] ?? '';
 } 
@@ -77,26 +77,42 @@ function generateActionKeyword(data: CommonUpdateParam | BulkUpdateParam) {
   return {replacement, startPosition, endPosition}
 }
 
+function flatYamlFields(yaml: string, flatFields: string[]): string {
+  const objectYaml = parseYaml(yaml.slice(4, -4));
+
+  return flatFields.reduce((res, key) => {
+    const YAML_FIELD_REGEX = new RegExp(`(${key}:).+?(?=\\n\\S|$)`, 'gs');
+
+    return yaml.replace(YAML_FIELD_REGEX, `$1 [${objectYaml[key].join(', ')}]`)
+  }, yaml)
+}
+
 export function replace(key: string, value: string, editor: Editor): void {
   const {replacement, startPosition, endPosition} = generateActionKeyword({key, value, editor, action: 'replace'});
 
   editor.replaceRange(replacement, startPosition, endPosition)
 }
 
-export function insert(key: string, value: string, editor: Editor): void {
+export function insert(key: string, value: string, flat: boolean, editor: Editor): void {
   const {replacement, startPosition, endPosition} = generateActionKeyword({key, value, editor, action: 'insert'});
 
-  editor.replaceRange(replacement, startPosition, endPosition)
+  const postProcessedReplacement = flat? flatYamlFields(replacement, [key]): replacement;
+
+  editor.replaceRange(postProcessedReplacement, startPosition, endPosition)
 }
 
-export function remove(key: string, value: string, editor: Editor): void {
+export function remove(key: string, value: string, flat: boolean, editor: Editor): void {
   const {replacement, startPosition, endPosition} = generateActionKeyword({key, value, editor, action: 'remove'});
 
-  editor.replaceRange(replacement, startPosition, endPosition)
+  const postProcessedReplacement = flat? flatYamlFields(replacement, [key]): replacement;
+
+  editor.replaceRange(postProcessedReplacement, startPosition, endPosition)
 }
 
-export function bulkUpdate(updateDatas: Record<string, unknown>, removeDatas: string[], editor: Editor): void {
+export function bulkUpdate(updateDatas: Record<string, unknown>, removeDatas: string[], flatFields: string[], editor: Editor): void {
   const {replacement, startPosition, endPosition} = generateActionKeyword({updateDatas, removeDatas, editor, action: 'bulk'});
   
-  editor.replaceRange(replacement, startPosition, endPosition);
+  const flattedReplacement = flatYamlFields(replacement, flatFields);
+
+  editor.replaceRange(flattedReplacement, startPosition, endPosition);
 }

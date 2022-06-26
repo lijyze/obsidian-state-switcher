@@ -35,6 +35,9 @@ This plugin only switch value of field which is placed in yaml front matter, if 
 
 ## Release
 
+### 1.3.0
+The formation of yaml array is customizable(`- item` or `[item]`)!
+
 ### 1.2.0
 Now you can update multiple fields in one time!
 

@@ -1,6 +1,6 @@
 import { Editor, MarkdownView, Notice, Plugin } from 'obsidian';
 
-import { StateSwitcherSettings, FileStateSwitcherSettingTab, DEFAULT_SETTINGS } from './setting';
+import { StateSwitcherSettings, FileStateSwitcherSettingTab, DEFAULT_SETTINGS, KeyArrayData } from './setting';
 import Suggester from './suggester';
 import BulkUpdateModal from './bulkUpdateModal';
 import { replace, insert, remove, getObjectYaml, bulkUpdate } from './util';
@@ -57,7 +57,9 @@ export default class StateSwitcherPlugin extends Plugin {
 				if (!selectionResult) return ;
 
 				const {selectedKey, selectedValue} = selectionResult;
-				insert(selectedKey, selectedValue, editor);
+				const shouldFlat = this.getFlatFields().includes(selectedKey);
+
+				insert(selectedKey, selectedValue, shouldFlat, editor);
 			}
 		})
 
@@ -80,7 +82,10 @@ export default class StateSwitcherPlugin extends Plugin {
 				if (!selectionResult) return ;
 
 				const {selectedKey, selectedValue} = selectionResult;
-				remove(selectedKey, selectedValue, editor)
+
+				const shouldFlat = this.getFlatFields().includes(selectedKey);
+
+				remove(selectedKey, selectedValue, shouldFlat, editor)
 			}
 		})
 
@@ -103,7 +108,9 @@ export default class StateSwitcherPlugin extends Plugin {
 					return updateDatas[field.key]? []: [field.key];
 				})
 
-				bulkUpdate(updateDatas, removeDatas, editor);
+				const flatFields = this.getFlatFields().filter((key) => key in updateDatas);
+
+				bulkUpdate(updateDatas, removeDatas, flatFields, editor);
 			}
 		})
 
@@ -170,6 +177,12 @@ export default class StateSwitcherPlugin extends Plugin {
 		if (selectedValue === this.constants.turnBack) return await this.getUserSelection(editor, source, action);
 
 		return {selectedKey, selectedValue}
+	}
+
+	getFlatFields() {
+		return this.settings.stateMaps
+			.filter((setting) => (setting as KeyArrayData).format === 'flat')
+			.map((setting) => setting.key);
 	}
 }
 

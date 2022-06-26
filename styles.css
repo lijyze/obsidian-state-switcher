@@ -9,6 +9,7 @@
 
 .setting-item-control > .fss-meta { 
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
   grid-area: 1 / 1 / span 1 / span 2;
   text-align: left;
@@ -26,6 +27,10 @@
   flex-flow: column;
   justify-content: flex-start;
   row-gap: 10px;
+}
+
+.setting-item .setting-item {
+  border-top: 0 none;
 }
 
 .setting-item-control > .fss-values > .fss-values-value {
