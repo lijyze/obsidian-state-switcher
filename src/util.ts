@@ -47,34 +47,40 @@ function getYaml(editor: Editor): string {
 
 function generateActionKeyword(data: CommonUpdateParam | BulkUpdateParam) {
   const {editor, action} = data;
-  const yaml = getYaml(editor);
+  const yamlSection = getYaml(editor);
+  const yaml = yamlSection.slice(4, -3);
   const objectYaml = getObjectYaml(editor);
+  const objectSnippet: Record<string, unknown> = {};
 
-  const startPosition: EditorPosition = {line: 0, ch: 0};
-  const endPosition: EditorPosition = editor.offsetToPos(yaml.length);
+  if (action === 'replace') objectSnippet[data.key] = data.value;
 
-  if (!yaml) {
-    if (action === 'replace') objectYaml[data.key] = data.value;
-    if (action === 'insert') objectYaml[data.key] = [data.value];
-    if (action === 'bulk') {
-      Object.entries(data.updateDatas).forEach(([key, value]) => objectYaml[key] = value);
-    }
-  } else {
-    if (action === 'replace') objectYaml[data.key] = data.value;
-    if (action === 'insert') objectYaml[data.key] = objectYaml[data.key]? [...objectYaml[data.key], data.value]: [data.value];
-    if (action === 'remove' && objectYaml[data.key]) {
-      const newValue = objectYaml[data.key].filter((val: string) => val !== data.value);
-      newValue.length? objectYaml[data.key] = newValue: delete objectYaml[data.key];
-    }
-    if (action === 'bulk') {
-      data.removeDatas.forEach((key) => delete objectYaml[key])
-      Object.entries(data.updateDatas).forEach(([key, value]) => objectYaml[key] = value);
-    }
+  if (action === 'insert') objectSnippet[data.key] = objectYaml[data.key]? [...objectYaml[data.key], data.value]: [data.value];
+
+  if (action === 'remove') {
+    const newValue = objectYaml[data.key].filter((val: string) => val !== data.value);
+    objectSnippet[data.key] = newValue.length? newValue: null;
   }
 
-  const replacement = `---\n${stringifyYaml(objectYaml)}---`;
+  if (action === 'bulk') {
+    Object.entries(data.updateDatas).forEach(([key, value]) => objectSnippet[key] = value );
+    data.removeDatas.forEach((key) => objectSnippet[key] = null)
+  }
+
+  const replacement = `---\n${generateReplacement(yaml, objectSnippet)}---`;
+  const startPosition: EditorPosition = {line: 0, ch: 0};
+  const endPosition: EditorPosition = editor.offsetToPos(yamlSection.length);
 
   return {replacement, startPosition, endPosition}
+}
+
+function generateReplacement(yaml: string, snippet: Record<string, unknown>) {
+  return Object.entries(snippet).reduce((res, [key, value]) => {
+    const YAML_FIELD_REGEX = new RegExp(`(${key} *:).+?\\n(?=\\S|$)`, 'gs');
+  
+    const replacement = (value === null)? '': stringifyYaml({[key]: value});
+  
+    return yaml.match(YAML_FIELD_REGEX)? yaml.replace(YAML_FIELD_REGEX, replacement): `${yaml}${replacement}`;
+  }, yaml)
 }
 
 function flatYamlFields(yaml: string, flatFields: string[]): string {
@@ -83,7 +89,7 @@ function flatYamlFields(yaml: string, flatFields: string[]): string {
   return flatFields.reduce((res, key) => {
     const YAML_FIELD_REGEX = new RegExp(`(${key}:).+?(?=\\n\\S|$)`, 'gs');
 
-    return yaml.replace(YAML_FIELD_REGEX, `$1 [${objectYaml[key].join(', ')}]`)
+    return yaml.match(YAML_FIELD_REGEX)? yaml.replace(YAML_FIELD_REGEX, `$1 [${objectYaml[key].join(', ')}]`): yaml;
   }, yaml)
 }
 
