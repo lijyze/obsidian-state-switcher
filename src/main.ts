@@ -146,37 +146,28 @@ export default class StateSwitcherPlugin extends Plugin {
 
 		const keys = nonEmptyField.map((field) => field.key);
 
-		let selectedKey: string;
 		try {
-			selectedKey = await Suggester.Suggest(this.app, keys, keys);
-		} catch (error) {
-			console.log(error)
-		}
+			const selectedKey = await Suggester.Suggest(this.app, keys, keys);
+			let values = nonEmptyField.find((field) => field.key === selectedKey).values.filter((values) => values);
 
-		if (!selectedKey) return;
-
-		let values = nonEmptyField.find((field) => field.key === selectedKey).values.filter((values) => values);
-		if (action) {
-			const currentValues = currentFrontmatter[selectedKey];
-
-			if (currentValues) {
-				if (action === 'insert') values = values.filter((value) => !currentValues.includes(value))
-				if (action === 'remove') values = values.filter((value) => currentValues.includes(value))
+			if (action) {
+				const currentValues = currentFrontmatter[selectedKey];
+	
+				if (currentValues) {
+					if (action === 'insert') values = values.filter((value) => !currentValues.includes(value))
+					if (action === 'remove') values = values.filter((value) => currentValues.includes(value))
+				}
 			}
-		}
-		values.push(this.constants.turnBack);
+			values.push(this.constants.turnBack);
 
-		let selectedValue: string;
-		try {
-			selectedValue = await Suggester.Suggest(this.app, values, values);
+			const selectedValue = await Suggester.Suggest(this.app, values, values);
+	
+			if (selectedValue === this.constants.turnBack) return await this.getUserSelection(editor, source, action);
+
+			return {selectedKey, selectedValue}
 		} catch (error) {
 			console.log(error)
 		}
-
-		if (!selectedValue) return;
-		if (selectedValue === this.constants.turnBack) return await this.getUserSelection(editor, source, action);
-
-		return {selectedKey, selectedValue}
 	}
 
 	getFlatFields() {

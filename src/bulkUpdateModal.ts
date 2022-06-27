@@ -26,7 +26,7 @@ export default class BulkUpdateModal extends Modal {
 
   constructor(app: App, settings: FieldType[], currentFrontmatter: Record<string, unknown>) {
     super(app);
-
+    
     this.promise = new Promise((resolve, reject) => {
       this.resolvePromise = (value: Result) => {
         this.state = 'resolved';
@@ -128,8 +128,14 @@ export default class BulkUpdateModal extends Modal {
     settings.forEach(({key, values, structure}) => {
       const apply = currentFrontmatter[key]? true: false;
       let current: string | Set<string>;
-      if (structure === 'keyValue') current = currentFrontmatter[key] as string || '' ;
-      if (structure === 'keyArray') current = new Set(currentFrontmatter[key] as string[] || []);
+      if (structure === 'keyValue') 
+        current = typeof currentFrontmatter[key] === 'string'
+          ? currentFrontmatter[key] as string
+          : '' ;
+      if (structure === 'keyArray') 
+        current = currentFrontmatter[key] instanceof Array
+          ? new Set(currentFrontmatter[key] as string[])
+          : new Set([]);
 
       this.datas.push({key,values, apply, structure, current} as ModalData<'keyValue'> | ModalData<'keyArray'>)
     })

@@ -54,11 +54,20 @@ function generateActionKeyword(data: CommonUpdateParam | BulkUpdateParam) {
 
   if (action === 'replace') objectSnippet[data.key] = data.value;
 
-  if (action === 'insert') objectSnippet[data.key] = objectYaml[data.key]? [...objectYaml[data.key], data.value]: [data.value];
-
+  if (action === 'insert') {
+    if (objectYaml[data.key] instanceof Array) {
+      objectSnippet[data.key] = [...objectYaml[data.key], data.value]; 
+    } else {
+      objectSnippet[data.key] = [data.value];
+    }
+  }
   if (action === 'remove') {
-    const newValue = objectYaml[data.key].filter((val: string) => val !== data.value);
-    objectSnippet[data.key] = newValue.length? newValue: null;
+    if (objectYaml[data.key] instanceof Array) {
+      const newValue = objectYaml[data.key].filter((val: string) => val !== data.value);
+      objectSnippet[data.key] = newValue.length? newValue: null;
+    } else {
+      objectSnippet[data.key] = null;
+    }
   }
 
   if (action === 'bulk') {
@@ -74,22 +83,22 @@ function generateActionKeyword(data: CommonUpdateParam | BulkUpdateParam) {
 }
 
 function generateReplacement(yaml: string, snippet: Record<string, unknown>) {
-  return Object.entries(snippet).reduce((res, [key, value]) => {
+  return Object.entries(snippet).reduce((temp, [key, value]) => {
     const YAML_FIELD_REGEX = new RegExp(`(${key} *:).+?\\n(?=\\S|$)`, 'gs');
   
     const replacement = (value === null)? '': stringifyYaml({[key]: value});
   
-    return yaml.match(YAML_FIELD_REGEX)? yaml.replace(YAML_FIELD_REGEX, replacement): `${yaml}${replacement}`;
+    return temp.match(YAML_FIELD_REGEX)? temp.replace(YAML_FIELD_REGEX, replacement): `${temp}${replacement}`;
   }, yaml)
 }
 
 function flatYamlFields(yaml: string, flatFields: string[]): string {
   const objectYaml = parseYaml(yaml.slice(4, -4));
 
-  return flatFields.reduce((res, key) => {
+  return flatFields.reduce((temp, key) => {
     const YAML_FIELD_REGEX = new RegExp(`(${key}:).+?(?=\\n\\S|$)`, 'gs');
 
-    return yaml.match(YAML_FIELD_REGEX)? yaml.replace(YAML_FIELD_REGEX, `$1 [${objectYaml[key].join(', ')}]`): yaml;
+    return temp.match(YAML_FIELD_REGEX)? temp.replace(YAML_FIELD_REGEX, `$1 [${objectYaml[key].join(', ')}]`): temp;
   }, yaml)
 }
 
