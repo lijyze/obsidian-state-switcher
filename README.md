@@ -27,7 +27,6 @@ This plugin only switch value of field which is placed in yaml front matter, if 
 ## Working on
 
 1. Make it support more data structure, such as key-object.
-2. A new interaction method to bulk write yaml.
 
 ## Manually installing the plugin
 
