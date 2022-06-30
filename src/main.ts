@@ -4,6 +4,7 @@ import { StateSwitcherSettings, FileStateSwitcherSettingTab, DEFAULT_SETTINGS, K
 import Suggester from './suggester';
 import BulkUpdateModal from './bulkUpdateModal';
 import { replace, insert, remove, getObjectYaml, bulkUpdate } from './util';
+import { makeCompatible } from './version';
 
 export default class StateSwitcherPlugin extends Plugin {
 	settings: StateSwitcherSettings ;
@@ -125,12 +126,7 @@ export default class StateSwitcherPlugin extends Plugin {
 	async loadSettings() {
 		const settings: StateSwitcherSettings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 
-		// `structure` is added by version update. 
-		settings.stateMaps.forEach((map) => {
-			map.structure = map.structure ?? 'keyValue';
-		})
-
-		this.settings = settings;
+		this.settings = makeCompatible(settings);
 	}
 
 	async saveSettings() {
