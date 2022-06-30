@@ -123,7 +123,14 @@ export default class StateSwitcherPlugin extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		const settings: StateSwitcherSettings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+
+		// `structure` is added by version update. 
+		settings.stateMaps.forEach((map) => {
+			map.structure = map.structure ?? 'keyValue';
+		})
+
+		this.settings = settings;
 	}
 
 	async saveSettings() {
