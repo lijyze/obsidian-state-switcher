@@ -1,4 +1,4 @@
-# Obsidian State Switcher
+# Obsidian Yaml Manager
 
 This plugin allow you switch value of specific field within custom value set, so you won't make mistake.
 
@@ -26,7 +26,7 @@ This plugin only switch value of field which is placed in yaml front matter, if 
 
 ## Working on
 
-1. Make it support more data structure, such as key-object.
+1. Make it support more data structure, such as key-object(still no clue and not sure if it's necessary).
 
 ## Manually installing the plugin
 
