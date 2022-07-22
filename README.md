@@ -1,6 +1,6 @@
 # Obsidian Yaml Manager
 
-This plugin allow you switch value of specific field within custom value set, so you won't make mistake.
+Keey you away from directly operating yaml front matter, so you won't make mistake.
 
 ## Demo
 

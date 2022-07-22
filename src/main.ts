@@ -127,6 +127,7 @@ export default class StateSwitcherPlugin extends Plugin {
 		const settings: StateSwitcherSettings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 
 		this.settings = makeCompatible(settings);
+		this.saveSettings();
 	}
 
 	async saveSettings() {

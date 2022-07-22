@@ -108,10 +108,13 @@ export class FileStateSwitcherSettingTab extends PluginSettingTab {
 
 		setting.addDropdown((cb) => {
 			cb.addOptions(structureMap)
-				.setValue(field.structure ?? "keyValue")
+				.setValue(field.structure)
 				.onChange((value) => {
-					if (value === 'keyValue') delete (field as KeyArrayData).format
 					field.structure = value as FieldType["structure"];
+
+					if (value === 'keyValue') delete (field as KeyArrayData).format
+					else (field as KeyArrayData).format = 'stack'
+
 					this.plugin.saveSettings();
 					this.display();
 				});
@@ -126,7 +129,7 @@ export class FileStateSwitcherSettingTab extends PluginSettingTab {
 
 			setting.addDropdown((cb) => {
 				cb.addOptions(formatMap)
-					.setValue(field.format ?? 'stack')
+					.setValue(field.format)
 					.onChange((value) => {
 						field.format = value as KeyArrayData['format']
 						this.plugin.saveSettings();
